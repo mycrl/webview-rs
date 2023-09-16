@@ -24,11 +24,11 @@
 #endif
 
 #ifndef WEBVIEW_SCHEME_NAME
-#define WEBVIEW_SCHEME_NAME "ubiquitous"
+#define WEBVIEW_SCHEME_NAME "webview"
 #endif
 
 #ifndef WEBVIEW_SCHEME_DOMAIN
-#define WEBVIEW_SCHEME_DOMAIN "dollop"
+#define WEBVIEW_SCHEME_DOMAIN ""
 #endif
 
 static int SCHEME_OPT = CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_SECURE |
