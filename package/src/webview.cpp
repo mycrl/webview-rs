@@ -177,7 +177,7 @@ void browser_bridge_call(Browser* browser, char* req, BridgeCallCallback callbac
     browser->ref->BridgeCall(req, callback, ctx);
 }
 
-void browser_set_dev_tools_open_state(Browser* browser, bool is_open)
+void browser_set_devtools_state(Browser* browser, bool is_open)
 {
     assert(browser);
 

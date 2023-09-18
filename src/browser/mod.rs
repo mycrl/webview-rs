@@ -95,6 +95,7 @@ extern "C" {
     fn browser_exit(browser: *const RawBrowser);
     fn browser_resize(browser: *const RawBrowser, width: c_int, height: c_int);
     fn browser_get_hwnd(browser: *const RawBrowser) -> *const c_void;
+    fn browser_set_devtools_state(browser: *const RawBrowser, is_open: bool);
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -300,6 +301,10 @@ impl Browser {
 
     pub fn window_handle(&self) -> HWND {
         HWND(unsafe { browser_get_hwnd(self.ptr) })
+    }
+    
+    pub fn set_devtools_state(&self, is_open: bool) {
+        unsafe { browser_set_devtools_state(self.ptr, is_open) }
     }
 }
 

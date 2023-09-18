@@ -200,7 +200,7 @@ extern "C" EXPORT void browser_bridge_call(Browser * browser,
                                            BridgeCallCallback callback,
                                            void* ctx);
 
-extern "C" EXPORT void browser_set_dev_tools_open_state(Browser * browser, bool is_open);
+extern "C" EXPORT void browser_set_devtools_state(Browser * browser, bool is_open);
 
 extern "C" EXPORT void browser_resize(Browser * browser, int width, int height);
 
