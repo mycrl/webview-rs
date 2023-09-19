@@ -302,7 +302,7 @@ impl Browser {
     pub fn window_handle(&self) -> HWND {
         HWND(unsafe { browser_get_hwnd(self.ptr) })
     }
-    
+
     pub fn set_devtools_state(&self, is_open: bool) {
         unsafe { browser_set_devtools_state(self.ptr, is_open) }
     }
