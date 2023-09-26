@@ -4,7 +4,6 @@ use std::{
     time::Duration,
 };
 
-use anyhow::Result;
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 use tokio::{
@@ -30,20 +29,24 @@ extern "C" {
 pub trait BridgeObserver: Send + Sync {
     type Req: DeserializeOwned + Send;
     type Res: Serialize + 'static;
+    type Err: ToString;
 
-    async fn on(&self, req: Self::Req) -> Result<Self::Res>;
+    async fn on(&self, req: Self::Req) -> Result<Self::Res, Self::Err>;
 }
 
-pub(crate) struct BridgeOnHandler<Q, S> {
-    processor: Arc<dyn BridgeObserver<Req = Q, Res = S>>,
+pub(crate) struct BridgeOnHandler<Q, S, E> {
+    processor: Arc<dyn BridgeObserver<Req = Q, Res = S, Err = E>>,
 }
 
-impl<Q, S> BridgeOnHandler<Q, S>
+impl<Q, S, E> BridgeOnHandler<Q, S, E>
 where
     Q: DeserializeOwned + Send,
     S: Serialize + 'static,
+    E: ToString,
 {
-    pub(crate) fn new<T: BridgeObserver<Req = Q, Res = S> + 'static>(processer: T) -> Self {
+    pub(crate) fn new<T: BridgeObserver<Req = Q, Res = S, Err = E> + 'static>(
+        processer: T,
+    ) -> Self {
         Self {
             processor: Arc::new(processer),
         }
@@ -67,16 +70,36 @@ pub(crate) struct BridgeOnContext(
     pub Arc<dyn Fn(String, Box<dyn FnOnce(Result<String, String>) + Send + Sync>)>,
 );
 
+#[derive(Debug)]
+pub enum BridgeError {
+    SerdeError,
+    Timeout,
+    CallError,
+}
+
+impl std::error::Error for BridgeError {}
+
+impl std::fmt::Display for BridgeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 pub(crate) struct Bridge;
 
 impl Bridge {
-    pub(crate) async fn call<Q, S>(ptr: *const RawBrowser, req: &Q) -> Result<Option<S>>
+    pub(crate) async fn call<Q, S>(
+        ptr: *const RawBrowser,
+        req: &Q,
+    ) -> Result<Option<S>, BridgeError>
     where
         Q: Serialize,
         S: DeserializeOwned,
     {
         let (tx, rx) = channel::<Option<String>>();
-        let req = serde_json::to_string(req)?.as_c_str();
+        let req = serde_json::to_string(req)
+            .map_err(|_| BridgeError::SerdeError)?
+            .as_c_str();
 
         unsafe {
             browser_bridge_call(
@@ -88,8 +111,12 @@ impl Bridge {
         }
 
         Ok(
-            if let Some(ret) = timeout(Duration::from_secs(10), rx).await?? {
-                Some(serde_json::from_str(&ret)?)
+            if let Some(ret) = timeout(Duration::from_secs(10), rx)
+                .await
+                .map_err(|_| BridgeError::Timeout)?
+                .map_err(|_| BridgeError::CallError)?
+            {
+                Some(serde_json::from_str(&ret).map_err(|_| BridgeError::SerdeError)?)
             } else {
                 None
             },

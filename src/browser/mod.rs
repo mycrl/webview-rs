@@ -8,7 +8,6 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use anyhow::{anyhow, Result};
 use serde::{de::DeserializeOwned, Serialize};
 use tokio::{
     runtime::Handle,
@@ -25,7 +24,7 @@ use crate::{
 };
 
 use self::{
-    bridge::{Bridge, BridgeObserver, BridgeOnContext, BridgeOnHandler},
+    bridge::{Bridge, BridgeError, BridgeObserver, BridgeOnContext, BridgeOnHandler},
     control::{Control, Rect},
 };
 
@@ -182,6 +181,20 @@ impl Delegation {
     }
 }
 
+#[derive(Debug)]
+pub enum BrowserError {
+    CreateBrowserFailed,
+    BridgeError(BridgeError),
+}
+
+impl std::error::Error for BrowserError {}
+
+impl std::fmt::Display for BrowserError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 pub struct Browser {
     runtime: Handle,
     delegation: Delegation,
@@ -198,7 +211,7 @@ impl Browser {
         app: *const RawApp,
         settings: &BrowserSettings<'_>,
         observer: T,
-    ) -> Result<Arc<Self>>
+    ) -> Result<Arc<Self>, BrowserError>
     where
         T: Observer + 'static,
     {
@@ -230,8 +243,11 @@ impl Browser {
             }
         });
 
-        if !created_rx.await? {
-            return Err(anyhow!("create browser failed, maybe is load failed!"));
+        if !created_rx
+            .await
+            .map_err(|_| BrowserError::CreateBrowserFailed)?
+        {
+            return Err(BrowserError::CreateBrowserFailed);
         }
 
         Ok(Arc::new(Self {
@@ -243,12 +259,14 @@ impl Browser {
         }))
     }
 
-    pub async fn call_bridge<Q, S>(&self, req: &Q) -> Result<Option<S>>
+    pub async fn call_bridge<Q, S>(&self, req: &Q) -> Result<Option<S>, BrowserError>
     where
         Q: Serialize,
         S: DeserializeOwned,
     {
-        Bridge::call(self.ptr, req).await
+        Bridge::call(self.ptr, req)
+            .await
+            .map_err(|e| BrowserError::BridgeError(e))
     }
 
     pub fn on_bridge<Q, S, H>(&self, observer: H)
