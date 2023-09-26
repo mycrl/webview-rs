@@ -6,6 +6,10 @@ fn join(root: &str, next: &str) -> String {
     Path::new(root).join(next).to_str().unwrap().to_string()
 }
 
+fn is_exsit(dir: &str) -> bool {
+    fs::metadata(dir).is_ok()
+}
+
 #[cfg(target_os = "windows")]
 fn exec(cmd: &str, work_dir: &str) -> Result<ExitStatus, std::io::Error> {
     Command::new("powershell")
@@ -17,7 +21,7 @@ fn exec(cmd: &str, work_dir: &str) -> Result<ExitStatus, std::io::Error> {
 #[cfg(target_os = "windows")]
 fn download_cef(out_dir: &str, cef_version: &str) {
     let cef_path = join(&out_dir, "./cef");
-    if fs::metadata(join(&out_dir, "./cef.tar.bz2")).is_err() {
+    if !is_exsit(&join(&out_dir, "./cef.tar.bz2")) {
         exec(
             &format!(
                 "Invoke-WebRequest -Uri https://cef-builds.spotifycdn.com/{}_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2",
@@ -28,16 +32,16 @@ fn download_cef(out_dir: &str, cef_version: &str) {
         .unwrap();
     }
 
-    if fs::metadata(&cef_path).is_err() {
+    if !is_exsit(&cef_path) {
         let path = format!("./{}_windows64_minimal", cef_version);
-        if fs::metadata(join(&out_dir, &path)).is_err() {
+        if !is_exsit(&join(&out_dir, &path)) {
             exec("tar -xf ./cef.tar.bz2 -C ./", out_dir).unwrap();
         }
 
         exec(&format!("Rename-Item {} ./cef", path), out_dir).unwrap();
     }
 
-    if fs::metadata(join(&cef_path, "./libcef_dll_wrapper")).is_err() {
+    if !is_exsit(&join(&cef_path, "./libcef_dll_wrapper")) {
         exec("cmake -DCMAKE_BUILD_TYPE=Release .", &cef_path).unwrap();
         exec("cmake --build . --config Release", &cef_path).unwrap();
     }
@@ -140,7 +144,7 @@ fn main() {
     static_link(&out_dir, &target);
 
     let temp_cef = join(&temp, &cef_version);
-    if fs::metadata(&temp_cef).is_err() {
+    if !is_exsit(&temp_cef) {
         fs::create_dir(&temp_cef).unwrap();
         exec(&format!("cp -r ./cef/Resources/* {}", &temp_cef), &out_dir).unwrap();
         exec(&format!("cp ./cef/Release/* {}", &temp_cef), &out_dir).unwrap();

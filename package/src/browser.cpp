@@ -159,6 +159,7 @@ void IBrowser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
         return;
     }
 
+    IRender::SetBrowser(browser);
     IControl::SetBrowser(browser);
     IBridgeMaster::SetBrowser(browser);
     _browser = browser;

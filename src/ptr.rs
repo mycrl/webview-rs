@@ -1,5 +1,5 @@
 use std::{
-    ffi::{self, c_char},
+    ffi::{self, c_char, NulError},
     ptr::null,
 };
 
@@ -11,7 +11,8 @@ unsafe impl Send for CStrPtr {}
 unsafe impl Sync for CStrPtr {}
 
 impl TryFrom<&str> for CStrPtr {
-    type Error = anyhow::Error;
+    type Error = NulError;
+
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(Self {
             ptr: ffi::CString::new(value)?.into_raw(),

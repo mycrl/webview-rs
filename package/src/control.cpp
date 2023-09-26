@@ -128,7 +128,7 @@ void IMEControl::OnIMESetComposition(std::string input, int x, int y)
     line.style = CEF_CUS_DASH;
     line.range = CefRange(0, y);
 
-    _browser.value()->GetHost()->ImeSetComposition(input, {line}, CefRange::InvalidRange(),
+    _browser.value()->GetHost()->ImeSetComposition(input, { line }, CefRange::InvalidRange(),
                                                    CefRange(x, y));
 }
 
@@ -158,6 +158,19 @@ void IControl::OnMouseClick(MouseButtons button, bool pressed)
         return;
     }
 
+    if (button == MouseButtons::kLeft)
+    {
+        _mouse_event.modifiers = EVENTFLAG_LEFT_MOUSE_BUTTON;
+    }
+    else if (button == MouseButtons::kMiddle)
+    {
+        _mouse_event.modifiers = EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+    }
+    else if (button == MouseButtons::kRight)
+    {
+        _mouse_event.modifiers = EVENTFLAG_RIGHT_MOUSE_BUTTON;
+    }
+
     _browser.value()->GetHost()->SendMouseClickEvent(_mouse_event, from_c(button), !pressed, 1);
 }
 
@@ -171,6 +184,19 @@ void IControl::OnMouseClickWithPosition(MouseButtons button, int x, int y, bool 
     if (!_browser.has_value())
     {
         return;
+    }
+
+    if (button == MouseButtons::kLeft)
+    {
+        _mouse_event.modifiers = EVENTFLAG_LEFT_MOUSE_BUTTON;
+    }
+    else if (button == MouseButtons::kMiddle)
+    {
+        _mouse_event.modifiers = EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+    }
+    else if (button == MouseButtons::kRight)
+    {
+        _mouse_event.modifiers = EVENTFLAG_RIGHT_MOUSE_BUTTON;
     }
 
     _mouse_event.x = x;

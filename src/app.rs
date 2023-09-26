@@ -6,11 +6,11 @@ use std::{
 
 use crate::{
     args_ptr,
+    browser::BrowserError,
     ptr::{opt_to_c_str, release_c_str, AsCStr},
     Browser, BrowserSettings, Observer,
 };
 
-use anyhow::{anyhow, Result};
 use tokio::sync::{
     oneshot::{self, Sender},
     Notify,
@@ -66,6 +66,19 @@ impl Into<RawAppSettings> for &AppSettings<'_> {
     }
 }
 
+#[derive(Debug)]
+pub enum AppError {
+    CreateAppFailed,
+}
+
+impl std::error::Error for AppError {}
+
+impl std::fmt::Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 pub struct App {
     notify: Notify,
     settings: *mut RawAppSettings,
@@ -76,7 +89,7 @@ unsafe impl Send for App {}
 unsafe impl Sync for App {}
 
 impl App {
-    pub async fn new(settings: &AppSettings<'_>) -> Result<Arc<Self>> {
+    pub async fn new(settings: &AppSettings<'_>) -> Result<Arc<Self>, AppError> {
         let settings = Box::into_raw(Box::new(settings.into()));
         let (tx, rx) = oneshot::channel::<()>();
         let ptr = unsafe {
@@ -88,7 +101,7 @@ impl App {
         };
 
         if ptr.is_null() {
-            return Err(anyhow!("create app failed!"));
+            return Err(AppError::CreateAppFailed);
         }
 
         let this = Arc::new(Self {
@@ -108,7 +121,7 @@ impl App {
             this_.notify.notify_waiters();
         });
 
-        rx.await?;
+        rx.await.map_err(|_| AppError::CreateAppFailed)?;
         Ok(this)
     }
 
@@ -116,7 +129,7 @@ impl App {
         &self,
         settings: &BrowserSettings<'_>,
         observer: T,
-    ) -> Result<Arc<Browser>>
+    ) -> Result<Arc<Browser>, BrowserError>
     where
         T: Observer + 'static,
     {
