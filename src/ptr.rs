@@ -3,14 +3,14 @@ use std::{
     ptr::null,
 };
 
-pub(crate) struct CStrPtr {
+pub(crate) struct RawString {
     pub ptr: *const c_char,
 }
 
-unsafe impl Send for CStrPtr {}
-unsafe impl Sync for CStrPtr {}
+unsafe impl Send for RawString {}
+unsafe impl Sync for RawString {}
 
-impl TryFrom<&str> for CStrPtr {
+impl TryFrom<&str> for RawString {
     type Error = NulError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -20,7 +20,7 @@ impl TryFrom<&str> for CStrPtr {
     }
 }
 
-impl Drop for CStrPtr {
+impl Drop for RawString {
     fn drop(&mut self) {
         if !self.ptr.is_null() {
             drop(unsafe { ffi::CString::from_raw(self.ptr as *mut c_char) })
@@ -28,26 +28,26 @@ impl Drop for CStrPtr {
     }
 }
 
-pub(crate) trait AsCStr {
-    fn as_c_str(&self) -> CStrPtr;
+pub(crate) trait IntoRaw {
+    fn into_raw(&self) -> RawString;
 }
 
-impl AsCStr for String {
-    fn as_c_str(&self) -> CStrPtr {
-        CStrPtr::try_from(self.as_str()).unwrap()
+impl IntoRaw for String {
+    fn into_raw(&self) -> RawString {
+        RawString::try_from(self.as_str()).unwrap()
     }
 }
 
-impl<'a> AsCStr for &'a str {
-    fn as_c_str(&self) -> CStrPtr {
-        CStrPtr::try_from(*self).unwrap()
+impl<'a> IntoRaw for &'a str {
+    fn into_raw(&self) -> RawString {
+        RawString::try_from(*self).unwrap()
     }
 }
 
-impl<'a> AsCStr for Option<&'a str> {
-    fn as_c_str(&self) -> CStrPtr {
-        self.map(|str| CStrPtr::try_from(str).unwrap())
-            .unwrap_or(CStrPtr { ptr: null() })
+impl<'a> IntoRaw for Option<&'a str> {
+    fn into_raw(&self) -> RawString {
+        self.map(|str| RawString::try_from(str).unwrap())
+            .unwrap_or(RawString { ptr: null() })
     }
 }
 

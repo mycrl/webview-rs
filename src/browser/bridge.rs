@@ -12,7 +12,7 @@ use tokio::{
 };
 
 use super::RawBrowser;
-use crate::ptr::{from_c_str, AsCStr};
+use crate::ptr::{from_c_str, IntoRaw};
 
 type BridgeCallCallback = extern "C" fn(res: *const c_char, ctx: *mut c_void);
 
@@ -99,7 +99,7 @@ impl Bridge {
         let (tx, rx) = channel::<Option<String>>();
         let req = serde_json::to_string(req)
             .map_err(|_| BridgeError::SerdeError)?
-            .as_c_str();
+            .into_raw();
 
         unsafe {
             browser_bridge_call(

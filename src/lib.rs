@@ -7,7 +7,7 @@ use std::{
     ffi::{c_char, c_int},
 };
 
-use ptr::AsCStr;
+use ptr::IntoRaw;
 
 pub use app::{App, AppSettings};
 pub use browser::{
@@ -27,7 +27,7 @@ extern "C" {
 macro_rules! args_ptr {
     () => {
         std::env::args()
-            .map(|arg| arg.as_c_str())
+            .map(|arg| arg.into_raw())
             .collect::<Vec<_>>()
             .iter()
             .map(|arg| arg.ptr)

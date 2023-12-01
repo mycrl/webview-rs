@@ -7,7 +7,7 @@ use std::{
 use crate::{
     args_ptr,
     browser::BrowserError,
-    ptr::{opt_to_c_str, release_c_str, AsCStr},
+    ptr::{opt_to_c_str, release_c_str, IntoRaw},
     Browser, BrowserSettings, Observer,
 };
 

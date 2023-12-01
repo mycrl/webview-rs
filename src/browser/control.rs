@@ -1,6 +1,6 @@
 use std::ffi::{c_char, c_int};
 
-use crate::ptr::AsCStr;
+use crate::ptr::IntoRaw;
 
 use super::RawBrowser;
 
@@ -163,10 +163,10 @@ impl Control {
     pub fn on_ime(ptr: *const RawBrowser, action: ImeAction) {
         match action {
             ImeAction::Composition(input) => unsafe {
-                browser_send_ime_composition(ptr, input.as_c_str().ptr)
+                browser_send_ime_composition(ptr, input.into_raw().ptr)
             },
             ImeAction::Pre(input, x, y) => unsafe {
-                browser_send_ime_set_composition(ptr, input.as_c_str().ptr, x, y)
+                browser_send_ime_set_composition(ptr, input.into_raw().ptr, x, y)
             },
         }
     }

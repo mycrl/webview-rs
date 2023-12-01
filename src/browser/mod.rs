@@ -19,7 +19,7 @@ use tokio::{
 
 use crate::{
     app::RawApp,
-    ptr::{from_c_str, release_c_str, to_c_str, AsCStr},
+    ptr::{from_c_str, release_c_str, to_c_str, IntoRaw},
     ActionState, ImeAction, Modifiers, MouseAction, TouchEventType, TouchPointerType,
 };
 
@@ -395,17 +395,24 @@ extern "C" fn on_bridge(
                 on_ctx.0.as_ref()(
                     req,
                     Box::new(move |ret| {
+                        let res = match &ret {
+                            Ok(ret) => ret,
+                            Err(ret) => ret,
+                        }
+                        .into_raw();
+
                         callback(
                             ctx as *mut c_void,
-                            match ret {
-                                Ok(res) => Ret {
-                                    success: res.as_c_str().ptr,
+                            if ret.is_ok() {
+                                Ret {
+                                    success: res.ptr,
                                     failure: null(),
-                                },
-                                Err(err) => Ret {
-                                    failure: err.as_c_str().ptr,
+                                }
+                            } else {
+                                Ret {
                                     success: null(),
-                                },
+                                    failure: res.ptr,
+                                }
                             },
                         );
                     }),

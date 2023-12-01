@@ -24,6 +24,8 @@ IBrowser::IBrowser(std::shared_ptr<MessageRouter> router,
     , IDisplay(settings, observer, ctx)
 {
     assert(settings);
+
+    IBridgeMaster::BridgeSetOnCallback(observer.on_bridge, ctx);
 }
 
 CefRefPtr<CefDragHandler> IBrowser::GetDragHandler()
