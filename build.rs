@@ -142,11 +142,4 @@ fn main() {
 
     download_cef(&out_dir, cef_version);
     static_link(&out_dir, &target);
-
-    let temp_cef = join(&temp, &cef_version);
-    if !is_exsit(&temp_cef) {
-        fs::create_dir(&temp_cef).unwrap();
-        exec(&format!("cp -r ./cef/Resources/* {}", &temp_cef), &out_dir).unwrap();
-        exec(&format!("cp ./cef/Release/* {}", &temp_cef), &out_dir).unwrap();
-    }
 }
