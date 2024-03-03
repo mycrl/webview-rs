@@ -134,7 +134,6 @@ fn main() {
     let cef_version = "cef_binary_116.0.22+g480de66+chromium-116.0.5845.188";
     let target = env::var("TARGET").unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
-    let temp = env::var("TEMP").unwrap();
 
     println!("cargo:rerun-if-changed=./package/src");
     println!("cargo:rerun-if-changed=./build.rs");
