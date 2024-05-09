@@ -23,5 +23,9 @@
   <sup>platform supported: Windows / Linux(x11)</sup>
 </div>
 
+### Run
+
+For running examples see: https://github.com/mycrl/webview-rs/issues/3
+
 ### License
 [MIT](./LICENSE) Copyright (c) 2022 Mr.Panda.
