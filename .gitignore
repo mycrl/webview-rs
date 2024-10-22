@@ -3,3 +3,4 @@ DawnCache
 GPUCache
 /build
 /third_party
+.DS_Store
