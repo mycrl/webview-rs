@@ -66,15 +66,15 @@ fn static_link(out_dir: &str, target: &str) {
         cfgs.flag("-std=c++20");
     }
 
-    cfgs.file("./package/src/app.cpp")
-        .file("./package/src/browser.cpp")
-        .file("./package/src/control.cpp")
-        .file("./package/src/bridge.cpp")
-        .file("./package/src/render.cpp")
-        .file("./package/src/display.cpp")
-        .file("./package/src/webview.cpp")
-        .file("./package/src/scheme_handler.cpp")
-        .file("./package/src/message_router.cpp");
+    cfgs.file("./lib/app.cpp")
+        .file("./lib/browser.cpp")
+        .file("./lib/control.cpp")
+        .file("./lib/bridge.cpp")
+        .file("./lib/render.cpp")
+        .file("./lib/display.cpp")
+        .file("./lib/webview.cpp")
+        .file("./lib/scheme_handler.cpp")
+        .file("./lib/message_router.cpp");
 
     cfgs.include(join(out_dir, "./cef"));
 
@@ -135,7 +135,7 @@ fn main() {
     let target = env::var("TARGET").unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    println!("cargo:rerun-if-changed=./package/src");
+    println!("cargo:rerun-if-changed=./lib/src");
     println!("cargo:rerun-if-changed=./build.rs");
     println!("cargo:CEF_RELEASE={}", &join(&out_dir, "./cef"));
 
