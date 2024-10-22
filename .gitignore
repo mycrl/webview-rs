@@ -1,3 +1,5 @@
 /target
 DawnCache
 GPUCache
+/build
+/third_party
