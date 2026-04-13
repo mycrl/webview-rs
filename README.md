@@ -156,4 +156,4 @@ window.MessageTransport.send("Send message to Rust");
 
 ## License
 
-[MIT](./LICENSE) Copyright (c) 2025 Mr.Panda.
+[MIT](./LICENSE) Copyright (c) 2025 Mycrl.
